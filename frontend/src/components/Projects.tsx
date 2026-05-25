@@ -15,7 +15,7 @@ export function Projects() {
           title={<>Things I've shipped <em className="not-italic text-primary">recently</em>.</>}
         />
 
-        <div className="reveal mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="reveal mt-14 grid grid-cols-1 items-start md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {sorted.map((p) => (
             <ProjectCard key={p.id} project={p} uniformGrid />
           ))}

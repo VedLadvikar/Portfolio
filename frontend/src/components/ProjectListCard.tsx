@@ -1,4 +1,5 @@
 import type { Project } from "@/types/project";
+import { ProjectListDescription } from "./ProjectListDescription";
 
 interface ProjectListCardProps {
   project: Project;
@@ -8,9 +9,9 @@ export function ProjectListCard({ project }: ProjectListCardProps) {
   return (
     <article
       data-cursor-hover
-      className="group relative h-full overflow-hidden rounded-3xl border border-border bg-card"
+      className="group relative h-full rounded-3xl border border-border bg-card"
     >
-      <div className="grid h-full grid-cols-1">
+      <div className="grid h-full grid-cols-1 overflow-hidden rounded-3xl">
         <div className="relative aspect-[16/10] overflow-hidden">
           <img
             src={project.image_url}
@@ -37,7 +38,7 @@ export function ProjectListCard({ project }: ProjectListCardProps) {
             {project.tag}
           </div>
           <h3 className="mt-2 font-display text-2xl md:text-3xl">{project.title}</h3>
-          <p className="mt-3 flex-1 text-muted-foreground text-pretty line-clamp-4">{project.description}</p>
+          <ProjectListDescription text={project.description} />
 
           <div className="mt-5 flex flex-wrap gap-1.5">
             {project.stack.map((t) => (
@@ -53,6 +54,10 @@ export function ProjectListCard({ project }: ProjectListCardProps) {
           <div className="mt-auto pt-6 flex flex-wrap items-center gap-2">
             <a
               href={project.live_url}
+              {...(project.live_url.startsWith("http") && {
+                target: "_blank",
+                rel: "noopener noreferrer",
+              })}
               className="group/btn inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-2 text-sm hover:bg-primary transition-colors"
             >
               Live demo
@@ -60,6 +65,10 @@ export function ProjectListCard({ project }: ProjectListCardProps) {
             </a>
             <a
               href={project.code_url}
+              {...(project.code_url.startsWith("http") && {
+                target: "_blank",
+                rel: "noopener noreferrer",
+              })}
               className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm hover:border-foreground transition-colors"
             >
               GitHub

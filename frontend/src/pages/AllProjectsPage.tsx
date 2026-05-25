@@ -20,11 +20,11 @@ export function AllProjectsPage() {
   const sorted = [...projects].sort((a, b) => a.order - b.order);
 
   return (
-    <main className="page-enter relative min-h-screen overflow-x-hidden">
+    <>
       <Cursor />
       <Navbar />
       <BgArt />
-
+      <main className="page-enter relative min-h-screen overflow-x-hidden">
       <section className="py-24 md:py-32 px-6">
         <div className="mx-auto max-w-6xl">
           <div className="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -43,9 +43,9 @@ export function AllProjectsPage() {
             A complete look at builds, experiments, and products — from dashboards to decentralized apps.
           </p>
 
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="mt-10 grid grid-cols-1 items-start md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {sorted.map((project) => (
-              <div key={project.id} className="reveal h-full">
+              <div key={project.id} className="reveal">
                 <ProjectListCard project={project} />
               </div>
             ))}
@@ -63,6 +63,7 @@ export function AllProjectsPage() {
       </section>
 
       <Footer />
-    </main>
+      </main>
+    </>
   );
 }
