@@ -1,17 +1,19 @@
 # Portfolio Website
 
-Personal portfolio built with React and Supabase.
+Personal portfolio built with React and EmailJS.
 
 ## Tech Stack
 
 **Frontend:** React 19, Vite, Tailwind CSS v4, React Router, TypeScript  
-**Backend:** Supabase (PostgreSQL, Row-Level Security)
+**Contact:** EmailJS, Google reCAPTCHA v2  
+**Projects:** Static data in `src/data/projects.ts`
 
 ## Setup
 
 ### Prerequisites
 - Node.js 18+
-- A Supabase project ([supabase.com](https://supabase.com))
+- An [EmailJS](https://www.emailjs.com/) account with a service and template
+- A Google reCAPTCHA v2 site key ([Google reCAPTCHA admin](https://www.google.com/recaptcha/admin))
 
 ### 1. Clone & install
 
@@ -20,21 +22,24 @@ cd frontend
 npm install
 ```
 
-### 2. Supabase setup
-
-1. Create a project at [supabase.com](https://supabase.com)
-2. Open the SQL Editor and run `supabase-schema.sql` to create the tables
-3. Run `supabase-seed.sql` to populate sample projects (optional — the frontend has local fallback data)
-
-### 3. Environment variables
+### 2. Environment variables
 
 ```bash
 cp frontend/.env.example frontend/.env
 ```
 
-Edit `frontend/.env` with your Supabase project URL and anon key (found in Project Settings → API).
+Edit `frontend/.env`:
 
-### 4. Run
+| Variable | Purpose |
+|----------|---------|
+| `VITE_EMAIL_SERVICE_ID` | EmailJS service ID |
+| `VITE_EMAIL_TEMPLATE_ID` | EmailJS template ID |
+| `VITE_EMAIL_PUBLIC_KEY` | EmailJS public key |
+| `VITE_RECAPTCHA_SITE_KEY` | reCAPTCHA v2 site key |
+
+Configure your EmailJS template to use `{{from_name}}`, `{{from_email}}`, and `{{message}}`.
+
+### 3. Run
 
 ```bash
 cd frontend
@@ -49,26 +54,21 @@ Frontend runs at `http://localhost:5173`
 portfolio-website/
 ├── frontend/              React + Vite frontend
 │   ├── src/
-│   │   ├── assets/        Images
-│   │   ├── components/    UI components (one per file)
-│   │   ├── data/          Static data (skills, about)
+│   │   ├── components/    UI components
+│   │   ├── data/          Static data (skills, about, projects)
 │   │   ├── hooks/         Custom React hooks
-│   │   ├── lib/           Supabase client
-│   │   ├── services/      Supabase query wrappers
+│   │   ├── services/      EmailJS wrapper
 │   │   ├── types/         TypeScript interfaces
-│   │   └── utils/         Helpers
+│   │   └── utils/         Helpers & validation
 │   └── ...
-├── supabase-schema.sql    Database schema
-└── supabase-seed.sql      Sample project data
 ```
-
-## Supabase Tables
-
-| Table | RLS Policy | Description |
-|-------|-----------|-------------|
-| `projects` | Anonymous reads | Portfolio projects |
-| `contacts` | Anonymous inserts | Contact form submissions |
 
 ## Contact Form
 
-Contact form submissions are stored in the Supabase `contacts` table. Validation is performed client-side (name ≥ 2 chars, valid email, message ≥ 10 chars). The form includes loading, success, and error states.
+The contact form sends email via EmailJS (`emailjs.sendForm`) with:
+
+- Fields: `from_name`, `from_email`, `message`
+- Hidden honeypot field: `website` (silent rejection if filled)
+- Google reCAPTCHA v2 checkbox
+- Client-side validation (name ≥ 2 chars, valid email, message ≥ 10 chars)
+- Toast notifications for success, failure, and CAPTCHA errors

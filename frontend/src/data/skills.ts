@@ -40,7 +40,6 @@ export const skillCategories: SkillCategory[] = [
       { name: "MongoDB", slug: "mongodb" },
       { name: "Mongoose", slug: "mongoose" },
       { name: "PostgreSQL", slug: "postgresql" },
-      { name: "Supabase", slug: "supabase"}
     ],
   },
   {

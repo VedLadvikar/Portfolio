@@ -1,70 +1,87 @@
-import { useState, useRef, useEffect } from "react";
-import emailjs from '@emailjs/browser';
-import ReCAPTCHA from 'react-google-recaptcha';
+import { useState, useRef } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import { Magnetic } from "./Magnetic";
 import { Field } from "./Field";
+import { Toast } from "./Toast";
+import { useToast } from "@/hooks/useToast";
+import { sendEmail } from "@/services/emailService";
+import { validateContactForm } from "@/utils/contactValidation";
 
-type FormStatus = "idle" | "loading" | "success" | "error";
+const CAPTCHA_MESSAGE = "Please verify that you are not a robot.";
+const SUCCESS_MESSAGE = "Message sent successfully!";
+const FAILURE_MESSAGE = "Failed to send message. Please try again.";
+
+const initialForm = {
+  from_name: "",
+  from_email: "",
+  message: "",
+};
 
 export function Contact() {
   const formRef = useRef<HTMLFormElement>(null);
   const captchaRef = useRef<ReCAPTCHA>(null);
-  const [form, setForm] = useState({ from_name: "", from_email: "", message: "", honeypot: "" });
-  const [status, setStatus] = useState<FormStatus>("idle");
-  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
-
-  useEffect(() => {
-    if (toast) {
-      const timer = setTimeout(() => setToast(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [toast]);
+  const [form, setForm] = useState(initialForm);
+  const [website, setWebsite] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const { toast, showToast, clearToast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const resetForm = () => {
+    setForm(initialForm);
+    setWebsite("");
+    setCaptchaToken(null);
+    captchaRef.current?.reset();
+    formRef.current?.reset();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setToast(null);
+    clearToast();
 
-    if (form.honeypot) {
-      // Silently block submission if honeypot is filled
+    // Honeypot: bots that fill the hidden field are silently rejected
+    if (website.trim()) {
       return;
     }
 
-    const captchaValue = captchaRef.current?.getValue();
-    if (!captchaValue) {
-      setToast({ message: "Please verify that you are not a robot.", type: "error" });
+    const validationError = validateContactForm(form);
+    if (validationError) {
+      showToast(validationError, "error");
       return;
     }
 
-    setStatus("loading");
+    if (!captchaToken) {
+      showToast(CAPTCHA_MESSAGE, "error");
+      return;
+    }
+
+    if (!formRef.current) {
+      showToast(FAILURE_MESSAGE, "error");
+      return;
+    }
+
+    setIsLoading(true);
+    setSubmitSuccess(false);
 
     try {
-      await emailjs.sendForm(
-        import.meta.env.VITE_EMAIL_SERVICE_ID,
-        import.meta.env.VITE_EMAIL_TEMPLATE_ID,
-        formRef.current!,
-        {
-          publicKey: import.meta.env.VITE_EMAIL_PUBLIC_KEY,
-        }
-      );
-      
-      setStatus("success");
-      setToast({ message: "Message sent successfully!", type: "success" });
-      setForm({ from_name: "", from_email: "", message: "", honeypot: "" });
-      captchaRef.current?.reset();
-      
-      setTimeout(() => setStatus("idle"), 3000);
+      await sendEmail(formRef.current);
+      setSubmitSuccess(true);
+      showToast(SUCCESS_MESSAGE, "success");
+      resetForm();
+      setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (err) {
       console.error("Failed to send message:", err);
-      setStatus("error");
-      setToast({ message: "Failed to send message. Please try again.", type: "error" });
+      showToast(FAILURE_MESSAGE, "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const isDisabled = status === "loading" || status === "success";
+  const isDisabled = isLoading || submitSuccess;
 
   return (
     <section id="contact" className="py-24 md:py-32 px-6">
@@ -118,15 +135,15 @@ export function Contact() {
               </div>
             </div>
 
-            <form ref={formRef} className="md:col-span-3 space-y-4" onSubmit={handleSubmit}>
+            <form ref={formRef} className="md:col-span-3 space-y-4" onSubmit={handleSubmit} noValidate>
               <div className="hidden" aria-hidden="true">
                 <input
                   type="text"
-                  name="honeypot"
+                  name="website"
                   tabIndex={-1}
                   autoComplete="off"
-                  value={form.honeypot}
-                  onChange={handleChange}
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
                 />
               </div>
 
@@ -168,6 +185,8 @@ export function Contact() {
                   ref={captchaRef}
                   sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
                   theme="dark"
+                  onChange={setCaptchaToken}
+                  onExpired={() => setCaptchaToken(null)}
                 />
               </div>
 
@@ -177,9 +196,9 @@ export function Contact() {
                   className="inline-flex items-center gap-2 rounded-full bg-foreground text-background pl-5 pr-2 py-2 text-sm hover:bg-primary transition-colors disabled:opacity-60"
                   disabled={isDisabled}
                 >
-                  {status === "loading" ? "Sending..." : "Send Message"}
+                  {isLoading ? "Sending..." : "Send Message"}
                   <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-background text-foreground">
-                    {status === "success" ? "✓" : "→"}
+                    {submitSuccess ? "✓" : "→"}
                   </span>
                 </button>
               </Magnetic>
@@ -188,18 +207,7 @@ export function Contact() {
         </div>
       </div>
 
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-5">
-          <div className={`px-6 py-3 rounded-full shadow-lg text-sm font-medium border flex items-center gap-2 ${
-            toast.type === 'success' 
-              ? 'bg-green-500/10 text-green-500 border-green-500/20' 
-              : 'bg-red-500/10 text-red-500 border-red-500/20'
-          }`}>
-            <span>{toast.type === 'success' ? '✓' : '✕'}</span>
-            {toast.message}
-          </div>
-        </div>
-      )}
+      {toast && <Toast toast={toast} />}
     </section>
   );
 }
