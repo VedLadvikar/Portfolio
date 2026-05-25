@@ -1,6 +1,9 @@
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 export function useParallax() {
+  const { pathname } = useLocation();
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -34,5 +37,5 @@ export function useParallax() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [pathname]);
 }

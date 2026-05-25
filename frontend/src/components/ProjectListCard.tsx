@@ -1,20 +1,16 @@
 import type { Project } from "@/types/project";
 
-interface ProjectCardProps {
+interface ProjectListCardProps {
   project: Project;
-  uniformGrid?: boolean;
 }
 
-export function ProjectCard({ project, uniformGrid }: ProjectCardProps) {
-  const layoutCols =
-    !uniformGrid && project.featured ? "md:grid-cols-2" : "grid-cols-1";
-
+export function ProjectListCard({ project }: ProjectListCardProps) {
   return (
     <article
       data-cursor-hover
       className="group relative h-full overflow-hidden rounded-3xl border border-border bg-card"
     >
-      <div className={`grid h-full ${layoutCols} gap-0`}>
+      <div className="grid h-full grid-cols-1">
         <div className="relative aspect-[16/10] overflow-hidden">
           <img
             src={project.image_url}
@@ -54,7 +50,7 @@ export function ProjectCard({ project, uniformGrid }: ProjectCardProps) {
             ))}
           </div>
 
-          <div className="mt-auto pt-6 flex items-center gap-2">
+          <div className="mt-auto pt-6 flex flex-wrap items-center gap-2">
             <a
               href={project.live_url}
               className="group/btn inline-flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-2 text-sm hover:bg-primary transition-colors"
