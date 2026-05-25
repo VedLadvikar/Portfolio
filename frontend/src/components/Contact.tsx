@@ -114,10 +114,10 @@ export function Contact() {
 
               <div className="mt-8 space-y-2">
                 {[
-                  { l: "Email", v: "hello@vedladvikar.dev", h: "mailto:hello@vedladvikar.dev" },
-                  { l: "GitHub", v: "@vedladvikar", h: "#" },
-                  { l: "LinkedIn", v: "/in/vedladvikar", h: "#" },
-                  { l: "X", v: "@vedladvikar", h: "#" },
+                  { l: "Email", v: "vedladvikar@gmail.com", h: "mailto:vedladvikar@gmail.com" },
+                  { l: "GitHub", v: "VedLadvikar", h: "https://github.com/VedLadvikar" },
+                  { l: "LinkedIn", v: "/in/vedladvikar", h: "https://www.linkedin.com/in/vedladvikar/" },
+                  { l: "X", v: "vedladvikar", h: "https://x.com/vedladvikar" },
                 ].map((s) => (
                   <a
                     key={s.l}
